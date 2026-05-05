@@ -1,6 +1,6 @@
 # SKKU Notice Demo
 
-성균 공지 통합 알림 서비스의 SRS 제출 및 발표 시연을 위한 Expo + React Native 데모 앱입니다. 실제 백엔드, 크롤러, BERT 모델, 푸시 서버는 아직 붙이지 않았고, 공식 페이지에서 확인한 학과 구조와 소프트웨어학과 최신 공지 목록을 바탕으로 앱에서 설명 가능한 수준의 목 데이터와 로컬 저장 흐름을 구현했습니다.
+성균 공지 통합 알림 서비스 SRS 제출과 발표 시연에 사용할 Expo + React Native 데모 앱입니다. 아직 실제 백엔드, 크롤러, BERT 모델, 푸시 서버를 붙인 상태는 아니고, 공식 페이지에서 확인한 학과 구조와 소프트웨어학과 최신 공지 목록을 바탕으로 목 데이터와 로컬 저장 흐름을 구현했습니다.
 
 ## 기술 스택
 
@@ -13,15 +13,16 @@
 
 ## 실행 방법
 
-현재 폴더에서 실행합니다.
+처음 받는 경우에는 아래 순서대로 실행하면 됩니다.
 
 ```powershell
-cd "C:\Users\dudwl\OneDrive\Desktop\2026_1\소공개\2026s_hw1\skku-notice-demo"
+git clone https://github.com/user313439/skku-notice-demo.git
+cd skku-notice-demo
 npm install
 npm run web
 ```
 
-웹 브라우저가 자동으로 열리지 않으면 Chrome 또는 Edge에서 `http://localhost:8081`을 직접 열면 됩니다.
+웹 브라우저가 자동으로 열리지 않으면 Chrome 또는 Edge 주소창에 `http://localhost:8081`를 입력해서 들어가면 됩니다.
 
 Android Emulator에서 확인하려면 Android Studio에서 에뮬레이터를 켠 뒤 아래 명령을 실행합니다.
 
@@ -34,25 +35,6 @@ npm run android
 ```powershell
 npm run typecheck
 ```
-
-## 팀원과 같이 확인하는 방법
-
-가장 안정적인 방법은 GitHub에 `skku-notice-demo` 폴더를 올리고 팀원이 clone해서 실행하는 방식입니다.
-
-```powershell
-git clone <팀 GitHub 저장소 주소>
-cd skku-notice-demo
-npm install
-npm run web
-```
-
-같은 와이파이에 있는 팀원에게 바로 보여줄 때는 발표자 PC에서 Expo를 LAN 모드로 실행하고, 표시되는 주소 또는 QR을 공유할 수 있습니다.
-
-```powershell
-npx expo start --host lan
-```
-
-웹으로만 공유하려면 추후 `npx expo export --platform web` 결과물을 Vercel, Netlify, GitHub Pages 같은 정적 호스팅에 올리면 됩니다.
 
 ## 데모 주요 기능
 
