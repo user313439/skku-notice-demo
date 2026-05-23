@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import { AppShell } from '@/src/components/AppShell';
 import { CategoryChip } from '@/src/components/CategoryChip';
@@ -12,13 +12,28 @@ import { colors } from '@/src/theme/colors';
 export default function OnboardingScreen() {
   const { academicUnits, colleges, preferences, completeOnboarding } = useAppState();
   const [selectedCollegeId, setSelectedCollegeId] = useState('college-sw');
+  const [profileName, setProfileName] = useState(preferences.profileName);
+  const [profileStudentId, setProfileStudentId] = useState(preferences.profileStudentId);
+  const [profileEmail, setProfileEmail] = useState(preferences.profileEmail);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(preferences.notificationsEnabled);
   const [selectedIds, setSelectedIds] = useState(preferences.selectedUnitIds);
   const [keywordText, setKeywordText] = useState(preferences.keywords.join(', '));
 
   useEffect(() => {
+    setProfileName(preferences.profileName);
+    setProfileStudentId(preferences.profileStudentId);
+    setProfileEmail(preferences.profileEmail);
+    setNotificationsEnabled(preferences.notificationsEnabled);
     setSelectedIds(preferences.selectedUnitIds);
     setKeywordText(preferences.keywords.join(', '));
-  }, [preferences.selectedUnitIds, preferences.keywords]);
+  }, [
+    preferences.profileName,
+    preferences.profileStudentId,
+    preferences.profileEmail,
+    preferences.notificationsEnabled,
+    preferences.selectedUnitIds,
+    preferences.keywords,
+  ]);
 
   const visibleUnits = useMemo(
     () => academicUnits.filter((unit) => unit.collegeId === selectedCollegeId),
@@ -42,7 +57,12 @@ export default function OnboardingScreen() {
   };
 
   const startDemo = () => {
-    completeOnboarding(selectedIds.length ? selectedIds : preferences.selectedUnitIds, keywords);
+    completeOnboarding(selectedIds.length ? selectedIds : preferences.selectedUnitIds, keywords, {
+      profileName: profileName.trim() || '성균관대 데모 학생',
+      profileStudentId: profileStudentId.trim() || '2026310000',
+      profileEmail: profileEmail.trim() || 'demo.student@skku.edu',
+      notificationsEnabled,
+    });
     router.replace('/home');
   };
 
@@ -52,11 +72,48 @@ export default function OnboardingScreen() {
         <Text style={styles.kicker}>SKKU Notice Aggregator</Text>
         <Text style={styles.title}>성균 공지 통합 알림 서비스</Text>
         <Text style={styles.body}>
-          단과대학을 먼저 고른 뒤 학과와 융합전공을 선택하면 맞춤형 공지 피드가 구성됩니다.
+          사용자 정보를 입력하고 홈 피드와 알림을 받을 단과대학, 학과, 키워드를 설정합니다.
         </Text>
       </View>
 
-      <SectionHeader title="단과대학 선택" caption="공식 대학·학과 구조를 기반으로 구성" />
+      <SectionHeader title="사용자 정보" caption="데모용 회원가입 정보" />
+      <View style={styles.formGroup}>
+        <View style={styles.inputBlock}>
+          <Text style={styles.inputLabel}>이름</Text>
+          <TextInput
+            value={profileName}
+            onChangeText={setProfileName}
+            placeholder="성균관대 데모 학생"
+            placeholderTextColor={colors.textMuted}
+            style={styles.input}
+          />
+        </View>
+        <View style={styles.inputBlock}>
+          <Text style={styles.inputLabel}>학번</Text>
+          <TextInput
+            value={profileStudentId}
+            onChangeText={setProfileStudentId}
+            placeholder="2026310000"
+            placeholderTextColor={colors.textMuted}
+            keyboardType="number-pad"
+            style={styles.input}
+          />
+        </View>
+        <View style={styles.inputBlock}>
+          <Text style={styles.inputLabel}>이메일</Text>
+          <TextInput
+            value={profileEmail}
+            onChangeText={setProfileEmail}
+            placeholder="demo.student@skku.edu"
+            placeholderTextColor={colors.textMuted}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            style={styles.input}
+          />
+        </View>
+      </View>
+
+      <SectionHeader title="피드 / 알림 단과대학 선택" caption="공식 대학·학과 구조를 기반으로 구성" />
       <HorizontalRail contentContainerStyle={styles.collegeRailContent} style={styles.collegeRail}>
         {colleges.map((college) => (
           <CategoryChip
@@ -73,7 +130,7 @@ export default function OnboardingScreen() {
         <Text style={styles.selectedCollegeMeta}>{selectedCollege?.campus}</Text>
       </View>
 
-      <SectionHeader title="학과 / 전공 선택" caption="단과대 전체 또는 세부 학과를 함께 선택 가능" />
+      <SectionHeader title="알림 받을 학과 / 전공 선택" caption="홈 피드와 신규 공지 알림 범위에 함께 반영" />
       <View style={styles.unitGrid}>
         <Pressable
           onPress={() => toggleUnit(selectedCollegeId)}
@@ -109,7 +166,23 @@ export default function OnboardingScreen() {
         })}
       </View>
 
-      <SectionHeader title="키워드 알림" caption="쉼표로 구분해 등록" />
+      <View style={styles.notificationScopeCard}>
+        <View style={styles.notificationScopeText}>
+          <Text style={styles.notificationScopeTitle}>선택한 단위 알림 받기</Text>
+          <Text style={styles.notificationScopeBody}>
+            선택한 {selectedIds.length || preferences.selectedUnitIds.length}개 단과대/학과의 신규 공지,
+            키워드 매칭, 마감 임박 알림을 표시합니다.
+          </Text>
+        </View>
+        <Switch
+          value={notificationsEnabled}
+          onValueChange={setNotificationsEnabled}
+          trackColor={{ false: '#D1D5DB', true: colors.secondary }}
+          thumbColor={notificationsEnabled ? colors.primary : '#F9FAFB'}
+        />
+      </View>
+
+      <SectionHeader title="키워드 알림" caption="선택한 단위 안에서 쉼표로 구분해 등록" />
       <TextInput
         value={keywordText}
         onChangeText={setKeywordText}
@@ -154,6 +227,18 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 14,
     lineHeight: 21,
+  },
+  formGroup: {
+    gap: 10,
+    marginBottom: 4,
+  },
+  inputBlock: {
+    gap: 6,
+  },
+  inputLabel: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '900',
   },
   collegeRail: {
     marginHorizontal: -2,
@@ -212,6 +297,33 @@ const styles = StyleSheet.create({
   },
   unitKindSelected: {
     color: colors.primary,
+  },
+  notificationScopeCard: {
+    marginTop: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  notificationScopeText: {
+    flex: 1,
+  },
+  notificationScopeTitle: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  notificationScopeBody: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: 5,
   },
   input: {
     height: 48,

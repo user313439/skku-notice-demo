@@ -19,7 +19,14 @@ interface AppStateValue extends UserSnapshot {
   selectedUnitNames: string[];
   notifications: ReturnType<typeof createMockNotifications>;
   bookmarkMap: Record<string, BookmarkSetting>;
-  completeOnboarding: (selectedUnitIds: string[], keywords: string[]) => void;
+  completeOnboarding: (
+    selectedUnitIds: string[],
+    keywords: string[],
+    profile: Pick<
+      UserPreference,
+      'profileName' | 'profileStudentId' | 'profileEmail' | 'notificationsEnabled'
+    >,
+  ) => void;
   setSelectedUnitIds: (selectedUnitIds: string[]) => void;
   updateProfile: (profile: Pick<UserPreference, 'profileName' | 'profileStudentId' | 'profileEmail'>) => void;
   addKeyword: (keyword: string) => void;
@@ -101,8 +108,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     selectedUnitNames,
     notifications,
     bookmarkMap,
-    completeOnboarding: (selectedUnitIds, keywords) =>
+    completeOnboarding: (selectedUnitIds, keywords, profile) =>
       patchPreferences({
+        ...profile,
         selectedUnitIds,
         keywords: keywords.map((keyword) => keyword.trim()).filter(Boolean),
         hasOnboarded: true,
