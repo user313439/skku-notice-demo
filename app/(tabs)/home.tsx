@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { AppShell } from '@/src/components/AppShell';
 import { CategoryChip } from '@/src/components/CategoryChip';
 import { EmptyState } from '@/src/components/EmptyState';
+import { FilterSelect, type FilterSelectOption } from '@/src/components/FilterSelect';
 import { HorizontalRail } from '@/src/components/HorizontalRail';
 import { NoticeCard } from '@/src/components/NoticeCard';
 import { useAppState } from '@/src/state/AppStateProvider';
@@ -14,6 +15,18 @@ import type { DeadlineStatus, NoticeCategory } from '@/src/types';
 import { filterNotices, sortByDeadline } from '@/src/utils/noticeFilters';
 
 const categories: NoticeCategory[] = ['전체', '학사', '장학', '취업', '행사/세미나', '모집', '일반'];
+const categoryOptions: Array<FilterSelectOption<NoticeCategory>> = categories.map((category) => ({
+  label: category,
+  value: category,
+}));
+const sortOptions: Array<FilterSelectOption<'latest' | 'deadline'>> = [
+  { label: '최신', value: 'latest' },
+  { label: '마감순', value: 'deadline' },
+];
+const scheduleOptions: Array<FilterSelectOption<'all' | 'closed'>> = [
+  { label: '전체', value: 'all' },
+  { label: '지난', value: 'closed' },
+];
 
 export default function HomeScreen() {
   const {
@@ -29,9 +42,11 @@ export default function HomeScreen() {
   } = useAppState();
   const [activeScopeId, setActiveScopeId] = useState('all');
   const [unitRailExpanded, setUnitRailExpanded] = useState(true);
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<NoticeCategory>('전체');
   const [sortMode, setSortMode] = useState<'latest' | 'deadline'>('latest');
   const [deadlineStatus, setDeadlineStatus] = useState<'all' | Extract<DeadlineStatus, 'closed'>>('all');
+  const [openFilter, setOpenFilter] = useState<string | null>(null);
   const [feedback, setFeedback] = useState('');
 
   const feedScopeOptions = useMemo(() => {
@@ -101,6 +116,17 @@ export default function HomeScreen() {
   const bookmarkIds = new Set(bookmarks.map((bookmark) => bookmark.noticeId));
   const bookmarkCount = notices.filter((notice) => bookmarkIds.has(notice.id)).length;
   const selectedLabel = activeScope ? activeScope.fullLabel : '전체 구독 피드';
+  const sortValueLabel = sortOptions.find((option) => option.value === sortMode)?.label ?? '최신';
+  const scheduleValueLabel =
+    scheduleOptions.find((option) => option.value === deadlineStatus)?.label ?? '전체';
+  const activeFeedFilterLabels = [
+    selectedCategory !== '전체' ? selectedCategory : null,
+    sortMode !== 'latest' ? sortValueLabel : null,
+    deadlineStatus === 'closed' ? '지난 일정' : null,
+  ].filter(Boolean);
+  const filterSummaryText = activeFeedFilterLabels.length
+    ? activeFeedFilterLabels.join(' · ')
+    : '필터 없음';
 
   const handleBookmark = (noticeId: string) => {
     const exists = Boolean(bookmarkMap[noticeId]);
@@ -197,37 +223,83 @@ export default function HomeScreen() {
         </View>
       ) : null}
 
-      <HorizontalRail contentContainerStyle={styles.categoryContent} style={styles.categoryRail}>
-        {categories.map((category) => (
-          <CategoryChip
-            key={category}
-            label={category}
-            selected={selectedCategory === category}
-            onPress={() => setSelectedCategory(category)}
-          />
-        ))}
-      </HorizontalRail>
-
-      <View style={styles.sortRow}>
-        <Pressable
-          onPress={() => setSortMode('latest')}
-          style={[styles.sortButton, sortMode === 'latest' && styles.sortButtonSelected]}>
-          <Text style={[styles.sortText, sortMode === 'latest' && styles.sortTextSelected]}>
-            최신순
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => setSortMode('deadline')}
-          style={[styles.sortButton, sortMode === 'deadline' && styles.sortButtonSelected]}>
-          <Text style={[styles.sortText, sortMode === 'deadline' && styles.sortTextSelected]}>
-            마감임박순
-          </Text>
-        </Pressable>
-        {deadlineStatus === 'closed' ? (
-          <Pressable onPress={() => setDeadlineStatus('all')} style={styles.activeFilterButton}>
-            <Text style={styles.activeFilterText}>지난 일정</Text>
-            <Ionicons name="close" size={13} color={colors.primary} />
-          </Pressable>
+      <View style={styles.feedFilterCard}>
+        <View style={styles.feedFilterHeader}>
+          <View style={styles.feedFilterTitleRow}>
+            <Ionicons name="options-outline" size={17} color={colors.primary} />
+            <Text style={styles.feedFilterTitle}>피드 필터</Text>
+          </View>
+          <View style={styles.feedFilterActions}>
+            {(selectedCategory !== '전체' || sortMode !== 'latest' || deadlineStatus !== 'all') ? (
+              <Pressable
+                onPress={() => {
+                  setSelectedCategory('전체');
+                  setSortMode('latest');
+                  setDeadlineStatus('all');
+                  setOpenFilter(null);
+                }}
+                style={styles.feedResetButton}>
+                <Text style={styles.feedResetText}>초기화</Text>
+              </Pressable>
+            ) : null}
+            <Pressable
+              onPress={() => {
+                setOpenFilter(null);
+                setFiltersExpanded((current) => !current);
+              }}
+              style={styles.feedToggleButton}>
+              <Text style={styles.feedToggleText}>{filtersExpanded ? '접기' : '열기'}</Text>
+              <Ionicons
+                name={filtersExpanded ? 'chevron-up' : 'chevron-down'}
+                size={15}
+                color={colors.primary}
+              />
+            </Pressable>
+          </View>
+        </View>
+        <Text style={styles.feedFilterSummary}>{filterSummaryText}</Text>
+        {filtersExpanded ? (
+          <View style={styles.feedFilterRow}>
+            <View style={styles.feedCategoryColumn}>
+              <FilterSelect
+                label="카테고리"
+                valueLabel={selectedCategory}
+                options={categoryOptions}
+                open={openFilter === 'category'}
+                onToggle={() => setOpenFilter((current) => (current === 'category' ? null : 'category'))}
+                onSelect={(value) => {
+                  setSelectedCategory(value);
+                  setOpenFilter(null);
+                }}
+              />
+            </View>
+            <View style={styles.feedCompactColumn}>
+              <FilterSelect
+                label="정렬"
+                valueLabel={sortValueLabel}
+                options={sortOptions}
+                open={openFilter === 'sort'}
+                onToggle={() => setOpenFilter((current) => (current === 'sort' ? null : 'sort'))}
+                onSelect={(value) => {
+                  setSortMode(value);
+                  setOpenFilter(null);
+                }}
+              />
+            </View>
+            <View style={styles.feedCompactColumn}>
+              <FilterSelect
+                label="일정"
+                valueLabel={scheduleValueLabel}
+                options={scheduleOptions}
+                open={openFilter === 'schedule'}
+                onToggle={() => setOpenFilter((current) => (current === 'schedule' ? null : 'schedule'))}
+                onSelect={(value) => {
+                  setDeadlineStatus(value);
+                  setOpenFilter(null);
+                }}
+              />
+            </View>
+          </View>
         ) : null}
       </View>
 
@@ -238,6 +310,7 @@ export default function HomeScreen() {
             notice={notice}
             read={readNoticeIds.includes(notice.id)}
             bookmark={bookmarkMap[notice.id]}
+            highlightKeywords={preferences.keywords}
             onPress={() => router.push(`/notice/${notice.id}`)}
             onBookmarkPress={() => handleBookmark(notice.id)}
           />
@@ -334,6 +407,78 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: 13,
     fontWeight: '800',
+  },
+  feedFilterCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    padding: 14,
+    marginBottom: 12,
+  },
+  feedFilterHeader: {
+    minHeight: 32,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  feedFilterTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  feedFilterTitle: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  feedFilterActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  feedResetButton: {
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.secondary,
+    paddingHorizontal: 10,
+    justifyContent: 'center',
+  },
+  feedResetText: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  feedToggleButton: {
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.faint,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  feedToggleText: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  feedFilterSummary: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '800',
+    marginBottom: 10,
+  },
+  feedFilterRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  feedCategoryColumn: {
+    flex: 1.7,
+  },
+  feedCompactColumn: {
+    flex: 1,
   },
   categoryRail: {
     marginHorizontal: -2,

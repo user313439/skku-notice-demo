@@ -1,12 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '@/src/theme/colors';
 
-export function EmptyState({ title, body }: { title: string; body: string }) {
+export function EmptyState({ title, body }: { title: string; body?: string }) {
   return (
     <View style={styles.container}>
       <View style={styles.mark} />
       <Text style={styles.title}>{title}</Text>
-      <Text style={styles.body}>{body}</Text>
+      {body ? <Text style={styles.body}>{body}</Text> : null}
     </View>
   );
 }

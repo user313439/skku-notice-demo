@@ -27,6 +27,12 @@ export function filterNotices(
     if (filter.bookmarkOnly && !bookmarkIds.has(notice.id)) {
       return false;
     }
+    if (filter.bookmarkStatus === 'bookmarked' && !bookmarkIds.has(notice.id)) {
+      return false;
+    }
+    if (filter.bookmarkStatus === 'notBookmarked' && bookmarkIds.has(notice.id)) {
+      return false;
+    }
     if (filter.readStatus === 'read' && !readIds.has(notice.id)) {
       return false;
     }

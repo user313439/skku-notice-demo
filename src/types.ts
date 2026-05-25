@@ -44,6 +44,9 @@ export interface Notice {
   isImportant: boolean;
   classificationConfidence: number;
   tags: string[];
+  summary?: string;
+  attachmentTitle?: string;
+  attachmentDescription?: string;
 }
 
 export interface UserPreference {
@@ -94,5 +97,6 @@ export interface NoticeFilter {
   unitName?: string;
   readStatus?: 'all' | 'read' | 'unread';
   bookmarkOnly?: boolean;
+  bookmarkStatus?: 'all' | 'bookmarked' | 'notBookmarked';
   deadlineStatus?: 'all' | DeadlineStatus;
 }

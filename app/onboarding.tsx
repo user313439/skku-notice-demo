@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
@@ -6,6 +7,7 @@ import { AppShell } from '@/src/components/AppShell';
 import { CategoryChip } from '@/src/components/CategoryChip';
 import { HorizontalRail } from '@/src/components/HorizontalRail';
 import { SectionHeader } from '@/src/components/SectionHeader';
+import { suggestedKeywords } from '@/src/data/suggestedKeywords';
 import { useAppState } from '@/src/state/AppStateProvider';
 import { colors } from '@/src/theme/colors';
 
@@ -49,11 +51,19 @@ export default function OnboardingScreen() {
         .filter(Boolean),
     [keywordText],
   );
+  const keywordSet = useMemo(() => new Set(keywords), [keywords]);
 
   const toggleUnit = (id: string) => {
     setSelectedIds((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
     );
+  };
+
+  const toggleKeyword = (keyword: string) => {
+    const nextKeywords = keywordSet.has(keyword)
+      ? keywords.filter((item) => item !== keyword)
+      : [...keywords, keyword];
+    setKeywordText(nextKeywords.join(', '));
   };
 
   const startDemo = () => {
@@ -167,6 +177,13 @@ export default function OnboardingScreen() {
       </View>
 
       <View style={styles.notificationScopeCard}>
+        <View style={styles.notificationIconCircle}>
+          <Ionicons
+            name={notificationsEnabled ? 'notifications' : 'notifications-off'}
+            size={22}
+            color={colors.primary}
+          />
+        </View>
         <View style={styles.notificationScopeText}>
           <Text style={styles.notificationScopeTitle}>선택한 단위 알림 받기</Text>
           <Text style={styles.notificationScopeBody}>
@@ -190,6 +207,31 @@ export default function OnboardingScreen() {
         placeholderTextColor={colors.textMuted}
         style={styles.input}
       />
+      <View style={styles.suggestedKeywordBlock}>
+        <Text style={styles.suggestedKeywordTitle}>추천 키워드</Text>
+        <View style={styles.suggestedKeywordGrid}>
+          {suggestedKeywords.map((keyword) => {
+            const selected = keywordSet.has(keyword);
+            return (
+              <Pressable
+                key={keyword}
+                onPress={() => toggleKeyword(keyword)}
+                style={[
+                  styles.suggestedKeywordChip,
+                  selected && styles.suggestedKeywordChipSelected,
+                ]}>
+                <Text
+                  style={[
+                    styles.suggestedKeywordText,
+                    selected && styles.suggestedKeywordTextSelected,
+                  ]}>
+                  {keyword}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
       <View style={styles.keywordRow}>
         {keywords.map((keyword) => (
           <View key={keyword} style={styles.keywordChip}>
@@ -300,26 +342,33 @@ const styles = StyleSheet.create({
   },
   notificationScopeCard: {
     marginTop: 14,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.white,
+    borderRadius: 14,
+    borderWidth: 0,
+    backgroundColor: colors.primaryDark,
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
   },
+  notificationIconCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   notificationScopeText: {
     flex: 1,
   },
   notificationScopeTitle: {
-    color: colors.text,
+    color: colors.white,
     fontSize: 15,
     fontWeight: '900',
   },
   notificationScopeBody: {
-    color: colors.textMuted,
+    color: '#CFE1D7',
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 18,
@@ -341,6 +390,40 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
     marginTop: 12,
+  },
+  suggestedKeywordBlock: {
+    marginTop: 12,
+  },
+  suggestedKeywordTitle: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '900',
+    marginBottom: 8,
+  },
+  suggestedKeywordGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  suggestedKeywordChip: {
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+  },
+  suggestedKeywordChipSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.secondary,
+  },
+  suggestedKeywordText: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  suggestedKeywordTextSelected: {
+    color: colors.primary,
   },
   keywordChip: {
     borderRadius: 14,

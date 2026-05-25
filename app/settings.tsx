@@ -7,6 +7,7 @@ import { AppShell } from '@/src/components/AppShell';
 import { CategoryChip } from '@/src/components/CategoryChip';
 import { HorizontalRail } from '@/src/components/HorizontalRail';
 import { SectionHeader } from '@/src/components/SectionHeader';
+import { suggestedKeywords } from '@/src/data/suggestedKeywords';
 import { useAppState } from '@/src/state/AppStateProvider';
 import { colors } from '@/src/theme/colors';
 
@@ -129,6 +130,31 @@ export default function SettingsScreen() {
           <Ionicons name="add" size={22} color={colors.white} />
         </Pressable>
       </View>
+      <View style={styles.suggestedKeywordBlock}>
+        <Text style={styles.suggestedKeywordTitle}>추천 키워드</Text>
+        <View style={styles.suggestedKeywordGrid}>
+          {suggestedKeywords.map((item) => {
+            const selected = preferences.keywords.includes(item);
+            return (
+              <Pressable
+                key={item}
+                onPress={() => (selected ? removeKeyword(item) : addKeyword(item))}
+                style={[
+                  styles.suggestedKeywordChip,
+                  selected && styles.suggestedKeywordChipSelected,
+                ]}>
+                <Text
+                  style={[
+                    styles.suggestedKeywordText,
+                    selected && styles.suggestedKeywordTextSelected,
+                  ]}>
+                  {item}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
       <View style={styles.keywordRow}>
         {preferences.keywords.map((item) => (
           <Pressable key={item} onPress={() => removeKeyword(item)} style={styles.keywordChip}>
@@ -238,6 +264,41 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  suggestedKeywordBlock: {
+    marginTop: 12,
+  },
+  suggestedKeywordTitle: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '900',
+    marginBottom: 8,
+  },
+  suggestedKeywordGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  suggestedKeywordChip: {
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+  },
+  suggestedKeywordChipSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.secondary,
+  },
+  suggestedKeywordText: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  suggestedKeywordTextSelected: {
+    color: colors.primary,
+    fontWeight: '900',
   },
   keywordRow: {
     flexDirection: 'row',

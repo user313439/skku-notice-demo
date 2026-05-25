@@ -32,6 +32,8 @@ interface AppStateValue extends UserSnapshot {
   addKeyword: (keyword: string) => void;
   removeKeyword: (keyword: string) => void;
   toggleNotifications: () => void;
+  restartOnboarding: () => void;
+  resetDemoState: () => void;
   toggleBookmark: (noticeId: string) => void;
   setReminderOption: (noticeId: string, reminderOption: ReminderOption) => void;
   markNoticeRead: (noticeId: string) => void;
@@ -130,6 +132,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       }),
     toggleNotifications: () =>
       patchPreferences({ notificationsEnabled: !snapshot.preferences.notificationsEnabled }),
+    restartOnboarding: () => patchPreferences({ hasOnboarded: false }),
+    resetDemoState: () => {
+      setSnapshot(defaultSnapshot);
+      void saveUserSnapshot(defaultSnapshot);
+    },
     toggleBookmark: (noticeId) => {
       updateSnapshot((current) => {
         const exists = current.bookmarks.some((bookmark) => bookmark.noticeId === noticeId);

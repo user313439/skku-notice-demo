@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AppShell } from '@/src/components/AppShell';
 import { SectionHeader } from '@/src/components/SectionHeader';
@@ -15,8 +15,8 @@ export default function ProfileScreen() {
     selectedUnitNames,
     notifications,
     bookmarks,
-    toggleNotifications,
     updateProfile,
+    resetDemoState,
   } = useAppState();
   const [editing, setEditing] = useState(false);
   const [profileName, setProfileName] = useState(preferences.profileName);
@@ -84,10 +84,10 @@ export default function ProfileScreen() {
           <Text style={styles.metricValue}>{bookmarks.length}</Text>
           <Text style={styles.metricLabel}>즐겨찾기</Text>
         </Pressable>
-        <View style={styles.metricCard}>
+        <Pressable onPress={() => router.push('/notifications')} style={styles.metricCard}>
           <Text style={styles.metricValue}>{notifications.filter((item) => !item.read).length}</Text>
           <Text style={styles.metricLabel}>안 읽은 알림</Text>
-        </View>
+        </Pressable>
       </View>
 
       <SectionHeader title="구독 단과대 / 학과" />
@@ -108,22 +108,19 @@ export default function ProfileScreen() {
         ))}
       </View>
 
-      <View style={styles.settingRow}>
-        <View>
-          <Text style={styles.settingTitle}>알림 사용</Text>
-          <Text style={styles.settingCaption}>새 공지, 키워드, 마감 리마인더</Text>
-        </View>
-        <Switch
-          value={preferences.notificationsEnabled}
-          onValueChange={toggleNotifications}
-          trackColor={{ false: '#D1D5DB', true: colors.secondary }}
-          thumbColor={preferences.notificationsEnabled ? colors.primary : '#F9FAFB'}
-        />
-      </View>
-
       <Pressable onPress={() => router.push('/settings')} style={styles.linkRow}>
         <Ionicons name="settings-outline" size={21} color={colors.primary} />
         <Text style={styles.linkText}>관심 학과 / 키워드 설정</Text>
+        <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+      </Pressable>
+      <Pressable
+        onPress={() => {
+          resetDemoState();
+          router.replace('/onboarding');
+        }}
+        style={styles.linkRow}>
+        <Ionicons name="refresh-circle-outline" size={21} color={colors.primary} />
+        <Text style={styles.linkText}>데모 처음 상태로 초기화</Text>
         <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
       </Pressable>
       <Pressable onPress={() => router.push('/system-status')} style={styles.linkRow}>
@@ -248,27 +245,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 12,
     fontWeight: '800',
-  },
-  settingRow: {
-    marginTop: 18,
-    borderRadius: 8,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  settingTitle: {
-    color: colors.text,
-    fontSize: 15,
-    fontWeight: '900',
-  },
-  settingCaption: {
-    color: colors.textMuted,
-    fontSize: 12,
-    marginTop: 4,
   },
   linkRow: {
     marginTop: 10,

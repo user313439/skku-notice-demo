@@ -21,6 +21,7 @@ export default function UnreadNoticesScreen() {
     readNoticeIds,
     bookmarkMap,
     toggleBookmark,
+    preferences,
   } = useAppState();
 
   const sourceNames = useMemo(() => {
@@ -63,6 +64,7 @@ export default function UnreadNoticesScreen() {
             notice={notice}
             read={false}
             bookmark={bookmarkMap[notice.id]}
+            highlightKeywords={preferences.keywords}
             onPress={() => router.push(`/notice/${notice.id}`)}
             onBookmarkPress={() => toggleBookmark(notice.id)}
           />

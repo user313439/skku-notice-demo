@@ -9,19 +9,42 @@ interface NoticeCardProps {
   notice: Notice;
   read: boolean;
   bookmark?: BookmarkSetting;
+  highlightKeywords?: string[];
+  showReadState?: boolean;
   onPress: () => void;
   onBookmarkPress: () => void;
 }
+
+const reminderLabels: Record<BookmarkSetting['reminderOption'], string> = {
+  none: '알림 없음',
+  '1d': '1일 전',
+  '3d': '3일 전',
+  '7d': '7일 전',
+};
 
 export function NoticeCard({
   notice,
   read,
   bookmark,
+  highlightKeywords = [],
+  showReadState = true,
   onPress,
   onBookmarkPress,
 }: NoticeCardProps) {
+  const normalizedKeywords = highlightKeywords
+    .map((keyword) => keyword.trim().toLowerCase())
+    .filter(Boolean);
+
+  const isHighlightedTag = (tag: string) => {
+    const normalizedTag = tag.toLowerCase();
+    return normalizedKeywords.some(
+      (keyword) => normalizedTag.includes(keyword) || keyword.includes(normalizedTag),
+    );
+  };
+  const visuallyRead = showReadState && read;
+
   return (
-    <Pressable onPress={onPress} style={[styles.card, read && styles.readCard]}>
+    <Pressable onPress={onPress} style={[styles.card, visuallyRead && styles.readCard]}>
       <View style={styles.topRow}>
         <View style={styles.leftBadges}>
           <DDayBadge notice={notice} />
@@ -43,14 +66,30 @@ export function NoticeCard({
         </Pressable>
       </View>
       <View style={styles.titleRow}>
-        {!read ? <View style={styles.unreadDot} /> : null}
-        <Text style={[styles.title, read && styles.readTitle]} numberOfLines={2}>
+        {showReadState && !read ? <View style={styles.unreadDot} /> : null}
+        <Text style={[styles.title, visuallyRead && styles.readTitle]} numberOfLines={2}>
           {notice.title}
         </Text>
       </View>
       <Text style={styles.content} numberOfLines={2}>
         {notice.content}
       </Text>
+      <View style={styles.tagRow}>
+        {notice.tags.slice(0, 4).map((tag) => {
+          const highlighted = isHighlightedTag(tag);
+          return (
+            <View key={tag} style={[styles.tagChip, highlighted && styles.keywordTagChip]}>
+              <Text style={[styles.tagText, highlighted && styles.keywordTagText]}>#{tag}</Text>
+            </View>
+          );
+        })}
+        {bookmark ? (
+          <View style={styles.reminderChip}>
+            <Ionicons name="alarm-outline" size={13} color={colors.primary} />
+            <Text style={styles.reminderText}>{reminderLabels[bookmark.reminderOption]}</Text>
+          </View>
+        ) : null}
+      </View>
       <View style={styles.metaRow}>
         <Text style={styles.meta}>{notice.sourceUnit}</Text>
         <Text style={styles.meta}>{formatDateKo(notice.publishedAt)}</Text>
@@ -131,6 +170,47 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     color: colors.textMuted,
+  },
+  tagRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 7,
+    marginTop: 11,
+  },
+  tagChip: {
+    minHeight: 28,
+    borderRadius: 14,
+    backgroundColor: colors.faint,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  keywordTagChip: {
+    backgroundColor: '#FFF7ED',
+    borderWidth: 1,
+    borderColor: '#FED7AA',
+  },
+  tagText: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  keywordTagText: {
+    color: colors.warning,
+  },
+  reminderChip: {
+    minHeight: 28,
+    borderRadius: 14,
+    backgroundColor: colors.secondary,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  reminderText: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: '900',
   },
   metaRow: {
     marginTop: 10,

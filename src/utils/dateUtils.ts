@@ -36,6 +36,16 @@ export function formatDateKo(dateString: string | null) {
   return `${year}.${month}.${day}`;
 }
 
+export function formatDateWithWeekdayKo(dateString: string | null) {
+  if (!dateString) {
+    return '일정 없음';
+  }
+  const dateOnly = dateString.slice(0, 10);
+  const date = new Date(`${dateOnly}T00:00:00`);
+  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  return `${formatDateKo(dateOnly)} (${weekdays[date.getDay()]})`;
+}
+
 export function formatRelativePublished(dateString: string) {
   const published = new Date(dateString);
   if (!Number.isNaN(published.getTime())) {

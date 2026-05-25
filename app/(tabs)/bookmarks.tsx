@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppShell } from '@/src/components/AppShell';
@@ -27,7 +27,9 @@ export default function BookmarksScreen() {
     readNoticeIds,
     toggleBookmark,
     setReminderOption,
+    preferences,
   } = useAppState();
+  const [openReminderId, setOpenReminderId] = useState<string | null>(null);
 
   const bookmarkedNotices = useMemo(() => {
     const ids = new Set(bookmarks.map((bookmark) => bookmark.noticeId));
@@ -60,35 +62,63 @@ export default function BookmarksScreen() {
           <Text style={styles.summaryLabel}>7일 이내 마감</Text>
           <Text style={styles.summaryValue}>{urgentCount}건</Text>
         </View>
-        <Text style={styles.summaryBody}>북마크한 공지의 리마인더 옵션을 데모 상태로 저장합니다.</Text>
+        <Text style={styles.summaryBody}>저장한 공지별로 알림 없음, 1일 전, 3일 전, 7일 전 리마인더를 선택할 수 있습니다.</Text>
       </View>
 
       {bookmarkedNotices.length ? (
         bookmarkedNotices.map((notice) => {
           const bookmark = bookmarkMap[notice.id];
+          const reminderLabel =
+            reminderOptions.find((option) => option.value === bookmark?.reminderOption)?.label ??
+            '알림 없음';
+          const reminderOpen = openReminderId === notice.id;
           return (
             <View key={notice.id} style={styles.itemBlock}>
               <NoticeCard
                 notice={notice}
                 read={readNoticeIds.includes(notice.id)}
                 bookmark={bookmark}
+                highlightKeywords={preferences.keywords}
+                showReadState={false}
                 onPress={() => router.push(`/notice/${notice.id}`)}
                 onBookmarkPress={() => toggleBookmark(notice.id)}
               />
-              <View style={styles.reminderRow}>
-                {reminderOptions.map((option) => {
-                  const selected = bookmark?.reminderOption === option.value;
-                  return (
-                    <Pressable
-                      key={option.value}
-                      onPress={() => setReminderOption(notice.id, option.value)}
-                      style={[styles.reminderButton, selected && styles.reminderButtonSelected]}>
-                      <Text style={[styles.reminderText, selected && styles.reminderTextSelected]}>
-                        {option.label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
+              <View style={styles.reminderPanel}>
+                <Pressable
+                  onPress={() =>
+                    setOpenReminderId((current) => (current === notice.id ? null : notice.id))
+                  }
+                  style={styles.reminderHeader}>
+                  <View style={styles.reminderTitleRow}>
+                    <Ionicons name="alarm-outline" size={16} color={colors.primary} />
+                    <Text style={styles.reminderLabel}>알림 시점</Text>
+                  </View>
+                  <View style={styles.reminderValueRow}>
+                    <Text style={styles.reminderCurrent}>{reminderLabel}</Text>
+                    <Ionicons
+                      name={reminderOpen ? 'chevron-up' : 'chevron-down'}
+                      size={16}
+                      color={colors.primary}
+                    />
+                  </View>
+                </Pressable>
+                {reminderOpen ? (
+                  <View style={styles.reminderRow}>
+                    {reminderOptions.map((option) => {
+                      const selected = bookmark?.reminderOption === option.value;
+                      return (
+                        <Pressable
+                          key={option.value}
+                          onPress={() => setReminderOption(notice.id, option.value)}
+                          style={[styles.reminderButton, selected && styles.reminderButtonSelected]}>
+                          <Text style={[styles.reminderText, selected && styles.reminderTextSelected]}>
+                            {option.label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                ) : null}
               </View>
             </View>
           );
@@ -158,14 +188,49 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   itemBlock: {
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  reminderPanel: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderTopWidth: 0,
+    borderRadius: 8,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    backgroundColor: colors.white,
+    padding: 12,
+    marginTop: -12,
+  },
+  reminderHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  reminderTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  reminderLabel: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  reminderValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  reminderCurrent: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: '900',
   },
   reminderRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginTop: -2,
-    marginBottom: 2,
+    marginTop: 11,
   },
   reminderButton: {
     height: 32,

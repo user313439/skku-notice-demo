@@ -7,6 +7,7 @@ import { EmptyState } from '@/src/components/EmptyState';
 import { useAppState } from '@/src/state/AppStateProvider';
 import { colors } from '@/src/theme/colors';
 import type { NotificationType } from '@/src/types';
+import { formatDateWithWeekdayKo, formatRelativePublished } from '@/src/utils/dateUtils';
 
 const typeLabels: Record<NotificationType, string> = {
   new_notice: '새 공지',
@@ -57,6 +58,9 @@ export default function NotificationsScreen() {
               </View>
               <Text style={styles.notificationTitle}>{item.title}</Text>
               <Text style={styles.notificationText}>{item.body}</Text>
+              <Text style={styles.notificationTime}>
+                {formatRelativePublished(item.createdAt)} · {formatDateWithWeekdayKo(item.createdAt)}
+              </Text>
             </View>
           </Pressable>
         ))
@@ -135,5 +139,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     marginTop: 4,
+  },
+  notificationTime: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 8,
   },
 });
