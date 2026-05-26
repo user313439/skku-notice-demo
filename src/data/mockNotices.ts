@@ -8,9 +8,11 @@ interface NoticeSeed {
   sourceUnit: string;
   sourceBoard: string;
   category: Notice['category'];
+  publishedDate?: string;
   publishedOffsetDays?: number;
   publishedAgoHours?: number;
   publishedAgoMinutes?: number;
+  deadlineDate?: string;
   deadlineOffsetDays: number | null;
   rawDeadlineText?: string;
   originalUrl?: string;
@@ -33,7 +35,9 @@ const seeds: NoticeSeed[] = [
     sourceUnit: '소프트웨어학과',
     sourceBoard: '소프트웨어학과 공지사항',
     category: '행사/세미나',
-    publishedOffsetDays: -3,
+    publishedDate: '2026-05-22',
+    publishedOffsetDays: -4,
+    deadlineDate: '2026-05-27',
     deadlineOffsetDays: 2,
     rawDeadlineText: '참가접수: 2026.05.21(목) ~ 2026.05.27(수)',
     originalUrl: 'https://cse.skku.edu/cse/notice.do?mode=view&articleNo=218124&article.offset=0&articleLimit=10',
@@ -51,7 +55,9 @@ const seeds: NoticeSeed[] = [
     sourceUnit: '소프트웨어학과',
     sourceBoard: '소프트웨어학과 공지사항',
     category: '행사/세미나',
-    publishedOffsetDays: -4,
+    publishedDate: '2026-05-21',
+    publishedOffsetDays: -5,
+    deadlineDate: '2026-06-11',
     deadlineOffsetDays: 17,
     rawDeadlineText: '행사 일시: 2026.06.11(목) 14:00~16:00',
     originalUrl: 'https://cse.skku.edu/cse/notice.do?mode=view&articleNo=218068&article.offset=0&articleLimit=10',
@@ -69,7 +75,9 @@ const seeds: NoticeSeed[] = [
     sourceUnit: '소프트웨어학과',
     sourceBoard: '소프트웨어학과 공지사항',
     category: '취업',
-    publishedOffsetDays: -5,
+    publishedDate: '2026-05-20',
+    publishedOffsetDays: -6,
+    deadlineDate: '2026-06-08',
     deadlineOffsetDays: 14,
     rawDeadlineText: '서류접수: 2026.05.20(수) ~ 2026.06.08(월) 17:00',
     originalUrl: 'https://cse.skku.edu/cse/notice.do?mode=view&articleNo=218019&article.offset=0&articleLimit=10',
@@ -87,7 +95,8 @@ const seeds: NoticeSeed[] = [
     sourceUnit: '소프트웨어학과',
     sourceBoard: '소프트웨어학과 공지사항',
     category: '취업',
-    publishedOffsetDays: -5,
+    publishedDate: '2026-05-20',
+    publishedOffsetDays: -6,
     deadlineOffsetDays: 9,
     originalUrl: 'https://cse.skku.edu/cse/notice.do?mode=view&articleNo=218016&article.offset=0&articleLimit=10',
     isImportant: true,
@@ -102,7 +111,8 @@ const seeds: NoticeSeed[] = [
     sourceUnit: '소프트웨어학과',
     sourceBoard: '소프트웨어학과 공지사항',
     category: '행사/세미나',
-    publishedOffsetDays: -5,
+    publishedDate: '2026-05-20',
+    publishedOffsetDays: -6,
     deadlineOffsetDays: 10,
     originalUrl: 'https://cse.skku.edu/cse/notice.do?mode=view&articleNo=218015&article.offset=0&articleLimit=10',
     isImportant: false,
@@ -117,7 +127,9 @@ const seeds: NoticeSeed[] = [
     sourceUnit: '소프트웨어학과',
     sourceBoard: '소프트웨어학과 공지사항',
     category: '모집',
-    publishedOffsetDays: -6,
+    publishedDate: '2026-05-19',
+    publishedOffsetDays: -7,
+    deadlineDate: '2026-05-26',
     deadlineOffsetDays: 1,
     rawDeadlineText: '모집 마감: 2026.05.26(화) 16:00',
     originalUrl: 'https://cse.skku.edu/cse/notice.do?mode=view&articleNo=217934&article.offset=0&articleLimit=10',
@@ -676,13 +688,14 @@ const seeds: NoticeSeed[] = [
 
 export const mockNotices: Notice[] = seeds.map((seed) => {
   const deadlineAt =
-    seed.deadlineOffsetDays === null ? null : addDays(seed.deadlineOffsetDays);
+    seed.deadlineDate ?? (seed.deadlineOffsetDays === null ? null : addDays(seed.deadlineOffsetDays));
   const publishedAt =
-    seed.publishedAgoMinutes !== undefined
+    seed.publishedDate ??
+    (seed.publishedAgoMinutes !== undefined
       ? addMinutes(-seed.publishedAgoMinutes)
       : seed.publishedAgoHours !== undefined
         ? addHours(-seed.publishedAgoHours)
-        : addDays(seed.publishedOffsetDays ?? 0);
+        : addDays(seed.publishedOffsetDays ?? 0));
 
   return {
     ...seed,

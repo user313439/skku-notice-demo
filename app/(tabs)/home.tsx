@@ -64,7 +64,7 @@ export default function HomeScreen() {
 
         return {
           id: unit.id,
-          label: unit.kind === 'college' ? `${unit.shortName ?? unit.name} 전체` : unit.shortName ?? unit.name,
+          label: unit.shortName ?? unit.name,
           fullLabel: unit.name,
           sourceNames: Array.from(new Set([unit.name, ...childSourceNames])),
         };
@@ -115,7 +115,8 @@ export default function HomeScreen() {
   }).length;
   const bookmarkIds = new Set(bookmarks.map((bookmark) => bookmark.noticeId));
   const bookmarkCount = notices.filter((notice) => bookmarkIds.has(notice.id)).length;
-  const selectedLabel = activeScope ? activeScope.fullLabel : '전체 구독 피드';
+  const subscriptionCount = feedScopeOptions.length;
+  const selectedLabel = activeScope ? activeScope.fullLabel : `전체 구독 피드 · ${subscriptionCount}개 구독`;
   const sortValueLabel = sortOptions.find((option) => option.value === sortMode)?.label ?? '최신';
   const scheduleValueLabel =
     scheduleOptions.find((option) => option.value === deadlineStatus)?.label ?? '전체';

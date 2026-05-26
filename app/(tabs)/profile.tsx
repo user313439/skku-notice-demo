@@ -82,7 +82,7 @@ export default function ProfileScreen() {
       <View style={styles.metricRow}>
         <Pressable onPress={() => router.push('/bookmarks')} style={styles.metricCard}>
           <Text style={styles.metricValue}>{bookmarks.length}</Text>
-          <Text style={styles.metricLabel}>즐겨찾기</Text>
+          <Text style={styles.metricLabel}>저장한 공지</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/notifications')} style={styles.metricCard}>
           <Text style={styles.metricValue}>{notifications.filter((item) => !item.read).length}</Text>
@@ -99,7 +99,7 @@ export default function ProfileScreen() {
         ))}
       </View>
 
-      <SectionHeader title="키워드 규칙" />
+      <SectionHeader title="관심 키워드" />
       <View style={styles.chipRow}>
         {preferences.keywords.map((keyword) => (
           <View key={keyword} style={styles.keywordChip}>

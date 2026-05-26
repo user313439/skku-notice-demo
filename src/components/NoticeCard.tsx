@@ -42,9 +42,12 @@ export function NoticeCard({
     );
   };
   const visuallyRead = showReadState && read;
+  const visuallyUnread = showReadState && !read;
 
   return (
-    <Pressable onPress={onPress} style={[styles.card, visuallyRead && styles.readCard]}>
+    <Pressable
+      onPress={onPress}
+      style={[styles.card, visuallyUnread && styles.unreadCard, visuallyRead && styles.readCard]}>
       <View style={styles.topRow}>
         <View style={styles.leftBadges}>
           <DDayBadge notice={notice} />
@@ -66,7 +69,6 @@ export function NoticeCard({
         </Pressable>
       </View>
       <View style={styles.titleRow}>
-        {showReadState && !read ? <View style={styles.unreadDot} /> : null}
         <Text style={[styles.title, visuallyRead && styles.readTitle]} numberOfLines={2}>
           {notice.title}
         </Text>
@@ -112,7 +114,11 @@ const styles = StyleSheet.create({
     borderColor: '#E8ECE8',
   },
   readCard: {
-    opacity: 0.64,
+    backgroundColor: '#FBFCFB',
+  },
+  unreadCard: {
+    borderLeftWidth: 4,
+    borderLeftColor: colors.primary,
   },
   topRow: {
     flexDirection: 'row',
@@ -148,13 +154,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 8,
   },
-  unreadDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: colors.danger,
-    marginTop: 8,
-  },
   title: {
     flex: 1,
     fontSize: 16,
@@ -163,7 +162,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   readTitle: {
-    color: colors.textMuted,
+    color: '#4B5563',
   },
   content: {
     marginTop: 8,

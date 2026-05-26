@@ -104,13 +104,13 @@ export default function SearchScreen() {
   } = useAppState();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<NoticeCategory>('전체');
-  const [unitName, setUnitName] = useState<string | undefined>();
+  const [unitNames, setUnitNames] = useState<string[]>([]);
   const [readStatus, setReadStatus] = useState<'all' | 'read' | 'unread'>('all');
   const [bookmarkStatus, setBookmarkStatus] = useState<'all' | 'bookmarked' | 'notBookmarked'>('all');
   const [deadlineStatus, setDeadlineStatus] = useState<'all' | DeadlineStatus>('all');
   const [showAllUnits, setShowAllUnits] = useState(false);
   const [openFilter, setOpenFilter] = useState<string | null>(null);
-  const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [filtersExpanded, setFiltersExpanded] = useState(true);
   const [hasSearched, setHasSearched] = useState(false);
 
   const selectedUnitIds = new Set(preferences.selectedUnitIds);
@@ -128,15 +128,18 @@ export default function SearchScreen() {
     : preferredUnits;
 
   const unitOptions: Array<FilterSelectOption<string>> = [
-    { label: '전체', value: 'all', caption: '관심 학과와 단과대 공지를 우선 검색' },
+    { label: '전체', value: 'all' },
     ...visibleUnits.map((unit) => ({
-      label: unit.shortName,
+      label: unit.name,
       value: unit.name,
-      caption: preferredUnitNames.has(unit.name) ? undefined : unit.name,
     })),
   ];
-  const selectedUnit = academicUnits.find((unit) => unit.name === unitName);
-  const unitValueLabel = unitName ? selectedUnit?.shortName ?? unitName : '전체';
+  const unitValueLabel =
+    unitNames.length === 0
+      ? '전체'
+      : unitNames.length === 1
+        ? unitNames[0]
+        : `${unitNames[0]} 외 ${unitNames.length - 1}개`;
   const readValueLabel = readOptions.find((option) => option.value === readStatus)?.label ?? '전체';
   const bookmarkValueLabel = bookmarkOptions.find((option) => option.value === bookmarkStatus)?.label ?? '전체';
   const deadlineValueLabel = deadlineFilters.find((option) => option.value === deadlineStatus)?.label ?? '전체';
@@ -145,7 +148,7 @@ export default function SearchScreen() {
   const queryReady = trimmedQuery.length > 0;
   const activeFilterLabels = [
     category !== '전체' ? category : null,
-    unitName ? unitValueLabel : null,
+    unitNames.length ? unitValueLabel : null,
     readStatus !== 'all' ? readValueLabel : null,
     bookmarkStatus !== 'all' ? bookmarkValueLabel : null,
     deadlineStatus !== 'all' ? deadlineValueLabel : null,
@@ -156,11 +159,12 @@ export default function SearchScreen() {
   const hasActiveFilter =
     queryReady ||
     category !== '전체' ||
-    Boolean(unitName) ||
+    unitNames.length > 0 ||
     readStatus !== 'all' ||
     bookmarkStatus !== 'all' ||
     deadlineStatus !== 'all';
-  const canReset = hasActiveFilter || (hasSearched && queryReady);
+  const canRunSearch = hasActiveFilter;
+  const canReset = hasActiveFilter || hasSearched;
 
   const suggestionCandidates = useMemo(() => {
     const titleTerms = notices.flatMap((notice) =>
@@ -186,36 +190,40 @@ export default function SearchScreen() {
   const clearFilters = () => {
     setQuery('');
     setCategory('전체');
-    setUnitName(undefined);
+    setUnitNames([]);
     setReadStatus('all');
     setBookmarkStatus('all');
     setDeadlineStatus('all');
     setOpenFilter(null);
     setHasSearched(false);
+    setFiltersExpanded(true);
   };
 
   const runSearch = () => {
     setOpenFilter(null);
-    setHasSearched(queryReady);
+    if (canRunSearch) {
+      setFiltersExpanded(false);
+    }
+    setHasSearched(canRunSearch);
   };
 
   const results = useMemo(
     () =>
       filterNotices(
         notices,
-        { query, category, unitName, readStatus, bookmarkStatus, deadlineStatus },
+        { query, category, unitNames, readStatus, bookmarkStatus, deadlineStatus },
         readNoticeIds,
         bookmarks,
       ),
-    [notices, query, category, unitName, readStatus, bookmarkStatus, deadlineStatus, readNoticeIds, bookmarks],
+    [notices, query, category, unitNames, readStatus, bookmarkStatus, deadlineStatus, readNoticeIds, bookmarks],
   );
-  const visibleResults = hasSearched && queryReady ? results : [];
+  const visibleResults = hasSearched && canRunSearch ? results : [];
 
   return (
     <AppShell scrollToTopSignal={resetScroll}>
       <View style={styles.header}>
-        <Text style={styles.title}>검색 / 필터</Text>
-        {hasSearched && queryReady ? <Text style={styles.count}>{results.length}건</Text> : null}
+        <Text style={styles.title}>검색</Text>
+        {hasSearched && canRunSearch ? <Text style={styles.count}>{results.length}건</Text> : null}
       </View>
 
       <View style={styles.filterPanel}>
@@ -225,12 +233,6 @@ export default function SearchScreen() {
             <Text style={styles.panelTitle}>조건 설정</Text>
           </View>
           <View style={styles.panelActions}>
-            <Pressable
-              disabled={!canReset}
-              onPress={clearFilters}
-              style={[styles.resetButton, !canReset && styles.resetButtonDisabled]}>
-              <Text style={[styles.resetText, !canReset && styles.resetTextDisabled]}>초기화</Text>
-            </Pressable>
             <Pressable
               onPress={() => {
                 setOpenFilter(null);
@@ -262,9 +264,9 @@ export default function SearchScreen() {
             style={styles.input}
           />
           <Pressable
-            disabled={!queryReady}
+            disabled={!canRunSearch}
             onPress={runSearch}
-            style={[styles.searchButton, !queryReady && styles.searchButtonDisabled]}>
+            style={[styles.searchButton, !canRunSearch && styles.searchButtonDisabled]}>
             <Text style={styles.searchButtonText}>검색</Text>
           </Pressable>
         </View>
@@ -288,6 +290,14 @@ export default function SearchScreen() {
           </View>
         ) : null}
 
+        <Pressable
+          disabled={!canReset}
+          onPress={clearFilters}
+          style={[styles.resetInlineButton, !canReset && styles.resetInlineButtonDisabled]}>
+          <Ionicons name="refresh-outline" size={15} color={canReset ? colors.primary : colors.textMuted} />
+          <Text style={[styles.resetText, !canReset && styles.resetTextDisabled]}>필터 초기화</Text>
+        </Pressable>
+
         {filtersExpanded ? (
           <>
             <Text style={styles.filterLabel}>카테고리</Text>
@@ -306,11 +316,18 @@ export default function SearchScreen() {
               label="Academic Unit"
               valueLabel={unitValueLabel}
               options={unitOptions}
+              selectedValues={unitNames}
               open={openFilter === 'unit'}
               onToggle={() => setOpenFilter((current) => (current === 'unit' ? null : 'unit'))}
               onSelect={(value) => {
-                setUnitName(value === 'all' ? undefined : value);
-                setOpenFilter(null);
+                setUnitNames((current) => {
+                  if (value === 'all') {
+                    return [];
+                  }
+                  return current.includes(value)
+                    ? current.filter((item) => item !== value)
+                    : [...current, value];
+                });
               }}
             />
             <Pressable onPress={() => setShowAllUnits((current) => !current)} style={styles.expandUnitsButton}>
@@ -375,7 +392,7 @@ export default function SearchScreen() {
         ))
       ) : hasSearched ? (
         <EmptyState title="검색 결과가 없습니다" body="키워드 또는 필터 조건을 조금 넓혀보세요." />
-      ) : !queryReady ? (
+      ) : !canRunSearch ? (
         <EmptyState title="표시할 결과가 없습니다" />
       ) : null}
     </AppShell>
@@ -448,6 +465,23 @@ const styles = StyleSheet.create({
   },
   resetTextDisabled: {
     color: colors.textMuted,
+  },
+  resetInlineButton: {
+    minHeight: 36,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: colors.white,
+    paddingHorizontal: 11,
+    marginBottom: 12,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  resetInlineButtonDisabled: {
+    borderColor: colors.border,
+    backgroundColor: colors.faint,
   },
   toggleFilterButton: {
     height: 32,

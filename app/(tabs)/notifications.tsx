@@ -27,6 +27,9 @@ export default function NotificationsScreen() {
   const { notifications, markNotificationRead } = useAppState();
 
   const unreadCount = notifications.filter((item) => !item.read).length;
+  const markAllRead = () => {
+    notifications.forEach((item) => markNotificationRead(item.id));
+  };
 
   const openNotification = (id: string, noticeId?: string) => {
     markNotificationRead(id);
@@ -39,7 +42,14 @@ export default function NotificationsScreen() {
     <AppShell>
       <View style={styles.header}>
         <Text style={styles.title}>알림 센터</Text>
-        <Text style={styles.count}>안 읽음 {unreadCount}건</Text>
+        <View style={styles.headerActions}>
+          <Text style={styles.count}>안 읽음 {unreadCount}건</Text>
+          {unreadCount ? (
+            <Pressable onPress={markAllRead} style={styles.markAllButton}>
+              <Text style={styles.markAllText}>모두 읽음</Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       {notifications.length ? (
@@ -86,6 +96,24 @@ const styles = StyleSheet.create({
   count: {
     color: colors.primary,
     fontSize: 13,
+    fontWeight: '900',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  markAllButton: {
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.secondary,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  markAllText: {
+    color: colors.primary,
+    fontSize: 12,
     fontWeight: '900',
   },
   notification: {

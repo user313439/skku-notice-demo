@@ -13,6 +13,7 @@ interface FilterSelectProps<T extends string> {
   label: string;
   valueLabel: string;
   options: FilterSelectOption<T>[];
+  selectedValues?: T[];
   open: boolean;
   onToggle: () => void;
   onSelect: (value: T) => void;
@@ -22,6 +23,7 @@ export function FilterSelect<T extends string>({
   label,
   valueLabel,
   options,
+  selectedValues,
   open,
   onToggle,
   onSelect,
@@ -41,7 +43,11 @@ export function FilterSelect<T extends string>({
             showsVerticalScrollIndicator={false}
             style={styles.menuScroll}>
             {options.map((option) => {
-              const selected = option.label === valueLabel;
+              const selected = selectedValues
+                ? option.value === 'all'
+                  ? selectedValues.length === 0
+                  : selectedValues.includes(option.value)
+                : option.label === valueLabel;
               return (
                 <Pressable
                   key={option.value}

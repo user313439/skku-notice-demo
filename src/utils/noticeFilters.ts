@@ -24,6 +24,9 @@ export function filterNotices(
     if (filter.unitName && notice.sourceUnit !== filter.unitName) {
       return false;
     }
+    if (filter.unitNames?.length && !filter.unitNames.includes(notice.sourceUnit)) {
+      return false;
+    }
     if (filter.bookmarkOnly && !bookmarkIds.has(notice.id)) {
       return false;
     }

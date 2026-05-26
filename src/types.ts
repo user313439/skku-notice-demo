@@ -95,6 +95,7 @@ export interface NoticeFilter {
   query?: string;
   category?: NoticeCategory;
   unitName?: string;
+  unitNames?: string[];
   readStatus?: 'all' | 'read' | 'unread';
   bookmarkOnly?: boolean;
   bookmarkStatus?: 'all' | 'bookmarked' | 'notBookmarked';
