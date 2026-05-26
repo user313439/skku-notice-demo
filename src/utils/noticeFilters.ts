@@ -66,3 +66,12 @@ export function sortByDeadline(notices: Notice[]) {
     return a.deadlineAt.localeCompare(b.deadlineAt);
   });
 }
+
+export function sortByUpcomingDeadline(notices: Notice[]) {
+  return [...notices]
+    .filter((notice) => {
+      const status = getDeadlineStatus(notice.deadlineAt, notice.rawDeadlineText);
+      return status === 'upcoming' || status === 'today';
+    })
+    .sort((a, b) => (a.deadlineAt ?? '').localeCompare(b.deadlineAt ?? ''));
+}

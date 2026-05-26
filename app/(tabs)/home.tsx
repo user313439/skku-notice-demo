@@ -12,7 +12,7 @@ import { NoticeCard } from '@/src/components/NoticeCard';
 import { useAppState } from '@/src/state/AppStateProvider';
 import { colors } from '@/src/theme/colors';
 import type { DeadlineStatus, NoticeCategory } from '@/src/types';
-import { filterNotices, sortByDeadline } from '@/src/utils/noticeFilters';
+import { filterNotices, sortByUpcomingDeadline } from '@/src/utils/noticeFilters';
 
 const categories: NoticeCategory[] = ['전체', '학사', '장학', '취업', '행사/세미나', '모집', '일반'];
 const categoryOptions: Array<FilterSelectOption<NoticeCategory>> = categories.map((category) => ({
@@ -89,7 +89,7 @@ export default function HomeScreen() {
       bookmarks,
     );
     if (sortMode === 'deadline') {
-      return sortByDeadline(filtered);
+      return sortByUpcomingDeadline(filtered);
     }
     return [...filtered].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
   }, [
